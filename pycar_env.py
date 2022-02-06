@@ -1,5 +1,5 @@
 import os
-os.environ["SDL_VIDEODRIVER"] = "dummy"
+# os.environ["SDL_VIDEODRIVER"] = "dummy"
 import pygame as pg
 from random import randint
 import PIL.Image as Image
@@ -12,6 +12,7 @@ class PyCar():
         super().__init__()
         pg.font.init()
         pg.mixer.init()
+        self.move_score = 0
 
 
     def player(self):
@@ -88,7 +89,8 @@ class PyCar():
         self.score_spd = 0
         self.prev_lane = "center"
         self.image = []
-        self.counter =0
+        self.counter = 0
+        self.move_score = 0
 
     def get_keyboard(self):
         return pg.key.get_pressed()
@@ -125,14 +127,18 @@ class PyCar():
         
         if action == 4: #and self.player_x <= 290:
             self.player_x += self.player_spd_x
+            self.move_score += 1
         if action == 3: # and self.player_x >= 110:
             self.player_x -= self.player_spd_x
+            self.move_score -= 1
         if action == 2 and self.player_y >= int(self.car_y/2) + 50:
             self.player_y -= self.player_spd_y
         if action == 1 and self.player_y <= int(self.hei - 50):
             self.player_y += self.player_spd_y
         else:
             pass
+        
+        self.move_score += 1
 
         if self.player_x > 310:
             collision = True
@@ -204,7 +210,7 @@ class PyCar():
         'LANE'
         ##action 3 is left and action 4 is right
         # action = 4 ##NEED TO FIX THIS
-        
+
         lane_changed = False
         if  self.prev_lane == "center" and (action == 3 or action == 4): 
             if abs(self.player_x-int(self.wid / 2)) > 75 and abs(self.player_x-int(self.wid / 2)) < 120:
@@ -229,6 +235,11 @@ class PyCar():
         if lane_changed:
             self.prev_lane = self.get_current_lane()
             # print(prev_lane) 
+
+        # print(self.player_x, self.player_y)
+        # in_lane = True
+        # if (125 < self.player_x < 175) or (225 < self.player_x < 275):
+        #     in_lane = False
 
         'NEW SCORE'
         reward = self.get_reward(collision, lane_changed, self.get_current_lane()==None, passing)
@@ -300,9 +311,9 @@ class PyCar():
 
         pg.quit()
 
-    def get_reward(self, collision, lane_changed, rule, passing):
+    def get_reward(self, collision, lane_changed, not_in_lane, passing):
 
-        r_col = -10 if collision else 0
+        r_col = (-10 * self.move_score) if collision else 0
         r_comp = 0 if lane_changed else 0
 
         # No rule for now
@@ -310,18 +321,18 @@ class PyCar():
 
         # r_safe = ##TODO
         if passing:
-            r_pass = 3
+            r_pass = 3 * self.move_score
         else:
             r_pass = 0
 
-        if rule:
+        if not_in_lane:
             r_const = 0
         else:
             r_const = 1
 
         # r_rule = r_vel + r_safe + r_const
 
-        return r_col+r_comp + r_const + r_pass
+        return r_col + r_const + r_pass + self.move_score
     
     def get_current_lane(self):
         if abs(self.player_x-int(self.wid / 2))<15:

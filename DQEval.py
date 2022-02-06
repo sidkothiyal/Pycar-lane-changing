@@ -8,6 +8,7 @@ import random
 from collections import namedtuple
 
 import sys
+import os
 import math
 import random
 import shutil
@@ -75,7 +76,7 @@ class DQNAgent:
         self.target_model.load_state_dict(self.policy_model.state_dict())
         self.target_model.eval()
 
-        self.savepath = "/home/sk002/Desktop/model/"
+        self.savepath = os.path.join(os.getcwd(), "model") + "/"
 
 
     def run(self, num):
@@ -109,7 +110,7 @@ class DQNAgent:
     def validate(self):
         
 
-        total = 200
+        total = 50
         reward_total = 0
         for episode in range(total):
 

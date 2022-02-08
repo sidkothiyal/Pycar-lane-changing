@@ -1,19 +1,25 @@
 import os
-#os.environ["SDL_VIDEODRIVER"] = "dummy"
+os.environ["SDL_VIDEODRIVER"] = "dummy"
 import pygame as pg
 from random import randint
 import PIL.Image as Image
 import numpy as np
 import time
-
+import shutil
 
 class PyCar():
-    def __init__(self):
+    def __init__(self, save_image=False):
         super().__init__()
         pg.font.init()
         pg.mixer.init()
         self.move_score = 0
-
+        self.image_dir = os.path.join(os.getcwd(), "images/")
+        if not os.path.isdir(self.image_dir):
+            os.makedirs(self.image_dir)
+        else:
+            shutil.rmtree(self.image_dir + "/")
+            os.makedirs(self.image_dir)
+        self.save_image = save_image
 
     def player(self):
         self.screen.blit(self.cars_img[0], (self.player_x - int(self.car_x / 2), self.player_y - int(self.car_y / 2)))
@@ -95,7 +101,7 @@ class PyCar():
     def get_keyboard(self):
         return pg.key.get_pressed()
 
-    def step(self, action):
+    def step(self, action, initial=False):
         # actions:
         # 0 --> Nothing
         # 1 --> Up
@@ -246,7 +252,7 @@ class PyCar():
         # if action>0:
         #     reward -= 0.25
 
-        self.score += reward
+        self.score = reward
         # print(self.score)
         done = False
         if collision:
@@ -256,8 +262,15 @@ class PyCar():
 
         self.counter += 1
 
-        if self.counter % 4 ==0:
-            self.image.append(Image.fromarray(pg.surfarray.array3d(pg.display.get_surface())).resize(size=(125, 100)))
+        # if self.counter % 4 ==0:
+        np_image = pg.surfarray.array3d(pg.display.get_surface())
+        # print(np_image)
+        self.image.append(Image.fromarray(np_image).resize(size=(270, 250)))
+        if initial:
+            return np_image
+        # self.image[-1].save("test.jpg")
+        # print(f"{np.max(np_image)}, {np.min(np_image)}, {np.mean(np_image)}, {np_image.shape}")
+        
         if len(self.image) == 5:
             self.image.pop(0)
         elif len(self.image) > 5:
@@ -265,9 +278,11 @@ class PyCar():
 
 
         num_images = 4
-        images=np.zeros((100, 125, 12))
+        images=np.zeros((250, 270, 12))
         for i in range(num_images):
             img_n = len(self.image) - i - 1
+            if self.save_image:
+                self.image[img_n].save(f"{self.image_dir}/image{self.counter}_{i}.jpg")
             if img_n < 0:
                 img_n = 0
             images[:, :, 3*i:3*(i+1)] = np.array(self.image[img_n])
@@ -281,20 +296,13 @@ class PyCar():
 
     def get_state(self):
         #Original (400, 500, 3)
-        np_image = pg.surfarray.array3d(pg.display.get_surface())
-        self.image.append(Image.fromarray(np_image).resize(size=(125, 100)))
-        temp_img = Image.fromarray(np.array(np_image * 255.).astype(np.uint8))
-        print("saving images")
-        temp_img.save("test.jpg")
-        print(f"{np.max(np_image)}, {np.min(np_image)}, {np.mean(np_image)}, {np_image.shape}")
+        np_image = self.step(0, True)
+        self.image.append(Image.fromarray(np_image).resize(size=(270, 250)))
         num_images = 4
-        images=np.zeros((100, 125, 12))
+        images=np.zeros((250, 270, 12))
         for i in range(num_images):
-            pg.display.update()
-            img = Image.fromarray(pg.surfarray.array3d(pg.display.get_surface())).resize(size=(125, 100))
-            img.save(f"test{i}.jpg")
+            img = Image.fromarray(np.copy(np_image)).resize(size=(270, 250))
             images[:, :, 3*i:3*i+3] = np.array(img)
-        print("Images saved")
         return images
 
     def run_game(self, keyboard=True):
@@ -358,7 +366,11 @@ class PyCar():
 
 if __name__ == "__main__":
     pc = PyCar()
+    print("Test0")
     while True:
+        print("Test1")
         pc.reset_game()
+        print("Test2")
         pc.get_state()
+        print("Test3")
         pc.run_game()

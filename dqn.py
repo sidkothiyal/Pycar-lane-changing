@@ -121,11 +121,11 @@ class DQN(nn.Module):
         self.bn6 = nn.BatchNorm2d(self.conv_filters[4])
         self.relu6 = nn.ReLU(inplace=True)
 
-        self.conv7 = nn.Conv2d(in_channels=self.conv_filters[4], out_channels=self.conv_filters[5], kernel_size=3, stride=2, padding=0, bias=True)
+        self.conv7 = nn.Conv2d(in_channels=self.conv_filters[4], out_channels=self.conv_filters[5], kernel_size=3, stride=1, padding=0, bias=True)
         self.bn7 = nn.BatchNorm2d(self.conv_filters[5])
         self.relu7 = nn.ReLU(inplace=True)
 
-        self.linear1 = nn.Linear(2464, 512)
+        self.linear1 = nn.Linear(2496, 512)
 
         self.linear2 = nn.Linear(512, self.num_classes)
 
@@ -172,6 +172,6 @@ class DQN(nn.Module):
 
 if __name__ == "__main__":
 	dqn = DQN()
-	img = np.random.randn(1, 12, 400, 500)
+	img = np.random.randn(1, 12, 250, 270)
 	img = torch.tensor(img).float()
 	dqn.forward(img)

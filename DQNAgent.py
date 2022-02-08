@@ -231,7 +231,7 @@ class DQNAgent:
                 # select action
                 action = self.select_action(curr_state, random_only)
 
-                images, reward, done,score = self.env.step(action.item())#TODO
+                images, reward, done, score = self.env.step(action.item())#TODO
 
                 if self.cuda:
                     reward = torch.Tensor([reward]).to(self.device)

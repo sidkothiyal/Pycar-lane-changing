@@ -105,9 +105,9 @@ class DQNAgent:
         :return:
         """
 
-        self.eps_start = 0.98
+        self.eps_start = 0.90
         self.eps_end = 0.35
-        self.eps_decay = 150
+        self.eps_decay = 500
 
         if self.cuda:
             state = state.cuda()
@@ -194,8 +194,8 @@ class DQNAgent:
         :return:
         """
 
-        self.num_episodes = 1000
-        self.target_update = 5
+        self.num_episodes = 2000
+        self.target_update = 1
 
         mean_score, max_score, min_score = self.run_sim(100, random_only=True)
 

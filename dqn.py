@@ -63,7 +63,7 @@ Transition = namedtuple('Transition', ('state', 'action', 'next_state', 'reward'
 class ReplayMemory(object):
     def __init__(self):
 
-        self.memory_capacity = 40000
+        self.memory_capacity = 30000
         self.capacity = self.memory_capacity
         self.memory = []
         self.position = 0
@@ -94,10 +94,10 @@ class DQN(nn.Module):
         super().__init__()
 
         self.input_channels = 12
-        self.conv_filters = [512, 256, 128, 64, 64] 
+        self.conv_filters = [512, 256, 128, 64, 64, 16] 
         self.num_classes = 5
 
-        self.conv1 = nn.Conv2d(in_channels=self.input_channels, out_channels=self.conv_filters[0], kernel_size=9, stride=4, padding=0, bias=True)
+        self.conv1 = nn.Conv2d(in_channels=self.input_channels, out_channels=self.conv_filters[0], kernel_size=9, stride=2, padding=0, bias=True)
         self.bn1 = nn.BatchNorm2d(self.conv_filters[0])
         self.relu1 = nn.ReLU(inplace=True)
 
@@ -113,7 +113,7 @@ class DQN(nn.Module):
         self.bn4 = nn.BatchNorm2d(self.conv_filters[2])
         self.relu4 = nn.ReLU(inplace=True)
 
-        self.conv5 = nn.Conv2d(in_channels=self.conv_filters[2], out_channels=self.conv_filters[3], kernel_size=3, stride=1, padding=0, bias=True)
+        self.conv5 = nn.Conv2d(in_channels=self.conv_filters[2], out_channels=self.conv_filters[3], kernel_size=3, stride=2, padding=0, bias=True)
         self.bn5 = nn.BatchNorm2d(self.conv_filters[3])
         self.relu5 = nn.ReLU(inplace=True)
 
@@ -121,7 +121,13 @@ class DQN(nn.Module):
         self.bn6 = nn.BatchNorm2d(self.conv_filters[4])
         self.relu6 = nn.ReLU(inplace=True)
 
-        self.linear = nn.Linear(512, self.num_classes)
+        self.conv7 = nn.Conv2d(in_channels=self.conv_filters[4], out_channels=self.conv_filters[5], kernel_size=3, stride=2, padding=0, bias=True)
+        self.bn7 = nn.BatchNorm2d(self.conv_filters[5])
+        self.relu7 = nn.ReLU(inplace=True)
+
+        self.linear1 = nn.Linear(2464, 512)
+
+        self.linear2 = nn.Linear(512, self.num_classes)
 
         self.apply(weights_init)
 
@@ -146,12 +152,25 @@ class DQN(nn.Module):
         x = self.conv5(x)
         x = self.bn5(x)
         x = self.relu5(x)
-        
+
         x = self.conv6(x)
         x = self.bn6(x)
         x = self.relu6(x)
-        
+
+        x = self.conv7(x)
+        x = self.bn7(x)
+        x = self.relu7(x)
+
         x = torch.flatten(x, 1) #.view(x.size(0), -1)
-        out = self.linear(x)
-        
+        #print(f"Exit shape {x.shape}")
+        x = self.linear1(x)
+        out = self.linear2(x)
+
         return out
+
+
+if __name__ == "__main__":
+	dqn = DQN()
+	img = np.random.randn(1, 12, 400, 500)
+	img = torch.tensor(img).float()
+	dqn.forward(img)

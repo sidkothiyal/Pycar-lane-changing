@@ -1,5 +1,5 @@
 import os
-# os.environ["SDL_VIDEODRIVER"] = "dummy"
+os.environ["SDL_VIDEODRIVER"] = "dummy"
 import pygame as pg
 from random import randint
 import PIL.Image as Image
@@ -313,7 +313,7 @@ class PyCar():
 
     def get_reward(self, collision, lane_changed, not_in_lane, passing):
 
-        r_col = (-10 * self.move_score) if collision else 0
+        r_col = (-100) if collision else 0
         r_comp = 0 if lane_changed else 0
 
         # No rule for now
@@ -321,7 +321,7 @@ class PyCar():
 
         # r_safe = ##TODO
         if passing:
-            r_pass = 3 * self.move_score
+            r_pass = 10
         else:
             r_pass = 0
 
@@ -332,7 +332,7 @@ class PyCar():
 
         # r_rule = r_vel + r_safe + r_const
 
-        return r_col + r_const + r_pass + self.move_score
+        return r_col + r_const + r_pass #+ self.move_score
     
     def get_current_lane(self):
         if abs(self.player_x-int(self.wid / 2))<15:

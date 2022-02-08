@@ -132,6 +132,7 @@ class DQN(nn.Module):
         self.apply(weights_init)
 
     def forward(self, x):
+        print(f"Shape of game {x.shape}")
 
         x = self.conv1(x)
         x = self.bn1(x)

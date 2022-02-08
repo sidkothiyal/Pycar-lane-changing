@@ -1,5 +1,5 @@
 import os
-os.environ["SDL_VIDEODRIVER"] = "dummy"
+#os.environ["SDL_VIDEODRIVER"] = "dummy"
 import pygame as pg
 from random import randint
 import PIL.Image as Image
@@ -280,13 +280,21 @@ class PyCar():
         return images, reward, done, self.score
 
     def get_state(self):
-        self.image.append(Image.fromarray(pg.surfarray.array3d(pg.display.get_surface())).resize(size=(125, 100)))
+        #Original (400, 500, 3)
+        np_image = pg.surfarray.array3d(pg.display.get_surface())
+        self.image.append(Image.fromarray(np_image).resize(size=(125, 100)))
+        temp_img = Image.fromarray(np.array(np_image * 255.).astype(np.uint8))
+        print("saving images")
+        temp_img.save("test.jpg")
+        print(f"{np.max(np_image)}, {np.min(np_image)}, {np.mean(np_image)}, {np_image.shape}")
         num_images = 4
         images=np.zeros((100, 125, 12))
         for i in range(num_images):
             pg.display.update()
             img = Image.fromarray(pg.surfarray.array3d(pg.display.get_surface())).resize(size=(125, 100))
+            img.save(f"test{i}.jpg")
             images[:, :, 3*i:3*i+3] = np.array(img)
+        print("Images saved")
         return images
 
     def run_game(self, keyboard=True):
